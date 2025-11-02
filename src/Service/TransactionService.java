@@ -2,7 +2,6 @@ package Service;
 
 import Model.Transaction;
 import Exception.FileProcessingException;
-import Exception.TransactionValidationException;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -15,7 +14,7 @@ public class TransactionService {
     private final Pattern accountPattern = Pattern.compile("\\d{5}-\\d{5}");
     private final Pattern amountPattern = Pattern.compile("-?\\d+([.,]\\d+)?");
 
-    public Transaction parseTransaction(File textFile) throws IOException, FileProcessingException, TransactionValidationException {
+    public Transaction parseTransaction(File textFile) throws IOException, FileProcessingException {
         try (BufferedReader reader = new BufferedReader(new FileReader(textFile))) {
             String line;
             String accountNumberFrom = null;

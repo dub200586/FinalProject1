@@ -5,7 +5,6 @@ import Service.ReportService;
 import Service.TransactionService;
 import Exception.ReportNotFoundException;
 import Exception.InvalidInputException;
-import Exception.TransactionValidationException;
 import Exception.FileProcessingException;
 
 import java.io.File;
@@ -32,7 +31,7 @@ public class Main {
         this.reportService = new ReportService(FILE_EXTENSION, FILE_TEXT_PATH, fileService);
     }
 
-    public static void main(String[] args) {
+    public static void main() {
         Main app = new Main();
         app.run();
     }
@@ -70,7 +69,7 @@ public class Main {
         sc.close();
     }
 
-    private void saveAllTransfersList() throws TransactionValidationException {
+    private void saveAllTransfersList() throws FileProcessingException {
         List<File> textFiles = fileService.findTextFiles(FILE_PATH);
         List<Transaction> transactions = new ArrayList<>();
 
@@ -79,10 +78,6 @@ public class Main {
                 if (fileService.isFileValid(textFile)) {
                     transactions.add(transactionService.parseTransaction(textFile));
                 }
-            } catch (TransactionValidationException e) {
-                Transaction invalidTransaction = createInvalidTransaction(textFile.getName());
-                transactions.add(invalidTransaction);
-                System.err.println("Предупреждение валидации: " + e.getMessage());
             } catch (Exception e) {
                 System.err.println("Ошибка обработки файла " + textFile.getName() + ": " + e.getMessage());
             }
@@ -101,32 +96,31 @@ public class Main {
         reportService.saveReport(transactionReports, savedPath);
     }
 
-    private Transaction createInvalidTransaction(String fileName) {
-        return new Transaction(fileName, null, null, 0);
-    }
-
     private void printAllTransfersList() {
         Scanner sc = new Scanner(System.in);
         System.out.println("Хотите ли отсортировать данные по датам?");
         String answer = sc.nextLine();
 
-        if (answer.equals("да")) {
-            List<LocalDateTime> duringDateTime = getSortingInterval();
-            LocalDateTime startDate = duringDateTime.get(0);
-            LocalDateTime endDate = duringDateTime.get(1);
+        try {
+            String reportText = reportService.getReport();
 
-            try {
-                String reportText = reportService.getReport();
+            if (answer.equals("да")) {
+                List<LocalDateTime> duringDateTime = getSortingInterval();
+                LocalDateTime startDate = duringDateTime.get(0);
+                LocalDateTime endDate = duringDateTime.get(1);
                 String filteredReport = reportService.filterReportByInterval(reportText, startDate, endDate);
 
-                if (filteredReport.isEmpty()) {
+                if (filteredReport == null || filteredReport.trim().isEmpty()) {
                     System.out.println("В указанный период данных нет");
-                } else {
-                    System.out.println(reportText);
+                    return;
                 }
-            } catch (ReportNotFoundException e) {
-                System.out.println("Отчет не найден: " + e.getMessage());
+
+                reportText = filteredReport;
             }
+
+            System.out.println(reportText);
+        } catch (ReportNotFoundException e) {
+            System.out.println("Отчет не найден: " + e.getMessage());
         }
     }
 
@@ -142,11 +136,11 @@ public class Main {
 
     private LocalDateTime readDate(Scanner sc, String type, DateTimeFormatter formatter) {
         while (true) {
-            System.out.printf("Дата %s (чч-мм-ГГГГ): ", type);
+            System.out.printf("Дата %s сортировки (чч-мм-ГГГГ): ", type);
             try {
                 return LocalDate.parse(sc.nextLine().trim(), formatter).atStartOfDay();
             } catch (DateTimeParseException e) {
-                System.out.println("Ошибка формата!");
+                System.out.println("Ошибка формата! Используйте формат чч-мм-ГГГГ");
             }
         }
     }

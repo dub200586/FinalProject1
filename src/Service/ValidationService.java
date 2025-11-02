@@ -4,29 +4,27 @@ import Model.Transaction;
 
 public class ValidationService {
 
-    static String validateTransaction(Transaction transaction) {
-        String stateText = "";
+    public static String validateTransaction(Transaction transaction) {
+        StringBuilder stateText = new StringBuilder();
 
         if (transaction.getAccountNumberFrom() == null) {
-            stateText = stateText + "ошибка во время обработки, неверный счет отправителя или его отсутствие";
+            stateText.append("ошибка во время обработки, неверный счет отправителя или его отсутствие");
         }
 
         if (transaction.getAccountNumberOn() == null) {
             if (stateText.isEmpty()) {
-                stateText = stateText + "ошибка во время обработки";
+                stateText.append("ошибка во время обработки");
             }
-
-            stateText = stateText + ", неверный счет получателя или его отсутствие";
+            stateText.append(", неверный счет получателя или его отсутствие");
         }
 
         if (transaction.getTransferAmount() <= 0) {
             if (stateText.isEmpty()) {
-                stateText = stateText + "ошибка во время обработки";
+                stateText.append("ошибка во время обработки");
             }
-
-            stateText = stateText + ", неверная сумма перевода";
+            stateText.append(", неверная сумма перевода");
         }
 
-        return stateText;
+        return stateText.toString();
     }
 }

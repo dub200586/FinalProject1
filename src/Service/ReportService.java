@@ -2,7 +2,6 @@ package Service;
 
 import Model.Transaction;
 import Model.TransactionReport;
-import Exception.TransactionValidationException;
 import Exception.FileProcessingException;
 import Exception.ReportNotFoundException;
 
@@ -29,10 +28,8 @@ public class ReportService {
                 String stateText = ValidationService.validateTransaction(t);
                 return new TransactionReport(t.getName(), t, stateText.isEmpty(),
                         LocalDateTime.now(), stateText);
-            } catch (TransactionValidationException e) {
-                return new TransactionReport(t.getName(), t, false,
-                        LocalDateTime.now(), e.getMessage());
-            }
+            } catch (Exception _) {}
+            return null;
         }).collect(Collectors.toList());
     }
 
