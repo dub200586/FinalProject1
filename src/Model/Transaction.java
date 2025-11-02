@@ -4,9 +4,9 @@ public class Transaction {
     private final String name;
     private final String  accountNumberFrom;
     private final String  accountNumberTo;
-    private final int transferAmount;
+    private final double transferAmount;
 
-    public Transaction(String name, String accountNumberFrom, String accountNumberOn, int transferAmount) {
+    public Transaction(String name, String accountNumberFrom, String accountNumberOn, double transferAmount) {
         this.name = name;
         this.accountNumberFrom = accountNumberFrom;
         this.accountNumberTo = accountNumberOn;
@@ -25,7 +25,7 @@ public class Transaction {
         return accountNumberTo;
     }
 
-    public int getTransferAmount() {
+    public double getTransferAmount() {
         return transferAmount;
     }
 }

@@ -38,6 +38,15 @@ public class FileService {
         }
     }
 
+    public void appendToFile(String content, String filePath) throws FileProcessingException {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath, true))) {
+            writer.write(content);
+            writer.newLine();
+        } catch (IOException e) {
+            throw new FileProcessingException("Ошибка дозаписи в файл: " + filePath, e);
+        }
+    }
+
     public String readFileContent(File file) throws FileProcessingException {
         try {
             return Files.readString(file.toPath()).trim();

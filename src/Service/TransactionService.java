@@ -13,14 +13,14 @@ import java.util.regex.Pattern;
 
 public class TransactionService {
     private final Pattern accountPattern = Pattern.compile("\\d{5}-\\d{5}");
-    private final Pattern amountPattern = Pattern.compile("-?\\d+");
+    private final Pattern amountPattern = Pattern.compile("-?\\d+([.,]\\d+)?");
 
     public Transaction parseTransaction(File textFile) throws IOException, FileProcessingException, TransactionValidationException {
         try (BufferedReader reader = new BufferedReader(new FileReader(textFile))) {
             String line;
             String accountNumberFrom = null;
             String accountNumberTo = null;
-            int transferAmount = 0;
+            double transferAmount = 0;
 
             while ((line = reader.readLine()) != null) {
                 line = line.trim();
@@ -33,7 +33,7 @@ public class TransactionService {
                         accountNumberTo = extractPattern(accountPattern, line, "номер счета получателя");
                     } else if (line.contains("сумма для перевода")) {
                         String amountStr = extractPattern(amountPattern, line, "сумма перевода");
-                        transferAmount = Integer.parseInt(amountStr);
+                        transferAmount = Double.parseDouble(amountStr.replace(',', '.'));
                     }
                 } catch (Exception e) {
                     throw new FileProcessingException("Ошибка обработки строки в файле " + textFile.getName() + ": " + line, e);

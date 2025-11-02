@@ -8,7 +8,7 @@ import Exception.ReportNotFoundException;
 
 import java.io.File;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -45,10 +45,10 @@ public class ReportService {
                 .map(TransactionReport::toString)
                 .collect(Collectors.joining("\n"));
 
-        String fileName = generateFileName();
+        String fileName = "\\TransactionReport" + fileExtension;
         String fullPath = saveDirectory + fileName;
 
-        fileService.saveToFile(reportContent, fullPath);
+        fileService.appendToFile(reportContent, fullPath);
         saveReportPath(fullPath);
 
         System.out.println("Отчет успешно создан: " + fullPath);
@@ -56,22 +56,35 @@ public class ReportService {
 
     public String getReport() throws ReportNotFoundException, FileProcessingException {
         if (!fileService.isFileValid(new File(pathFilePath))) {
-            throw new ReportNotFoundException("Файл с путем отчета не найден: " + pathFilePath);
+            throw new ReportNotFoundException("Файл отчета не найден");
         }
 
         String reportPath = fileService.readFileContent(new File(pathFilePath));
         File reportFile = new File(reportPath);
 
         if (!fileService.isFileValid(reportFile)) {
-            throw new ReportNotFoundException("Файл отчета не найден по пути: " + reportPath);
+            throw new ReportNotFoundException("Файл отчета не найден");
         }
 
         return fileService.readFileContent(reportFile);
     }
 
-    private String generateFileName() {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        return "\\Report" + LocalDateTime.now().format(formatter) + fileExtension;
+    public String filterReportByInterval(String fullReport, LocalDateTime startDate, LocalDateTime endDate) {
+        if (fullReport == null || fullReport.trim().isEmpty()) {
+            return "";
+        }
+
+        String[] lines = fullReport.split("\n");
+        List<String> filteredLines = new ArrayList<>();
+
+        for (String line : lines) {
+            LocalDateTime lineDate = LocalDateTime.parse(line.substring(0, line.indexOf("|")).trim());
+            if (!lineDate.isBefore(startDate) && !lineDate.isAfter(endDate)) {
+                filteredLines.add(line);
+            }
+        }
+
+        return String.join("\n", filteredLines);
     }
 
     private void saveReportPath(String path) throws FileProcessingException {

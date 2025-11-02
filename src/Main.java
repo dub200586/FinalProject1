@@ -9,6 +9,10 @@ import Exception.TransactionValidationException;
 import Exception.FileProcessingException;
 
 import java.io.File;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -102,11 +106,48 @@ public class Main {
     }
 
     private void printAllTransfersList() {
-        try {
-            String reportText = reportService.getReport();
-            System.out.println(reportText);
-        } catch (ReportNotFoundException e) {
-            System.out.println("Отчет не найден: " + e.getMessage());
+        Scanner sc = new Scanner(System.in);
+        System.out.println("Хотите ли отсортировать данные по датам?");
+        String answer = sc.nextLine();
+
+        if (answer.equals("да")) {
+            List<LocalDateTime> duringDateTime = getSortingInterval();
+            LocalDateTime startDate = duringDateTime.get(0);
+            LocalDateTime endDate = duringDateTime.get(1);
+
+            try {
+                String reportText = reportService.getReport();
+                String filteredReport = reportService.filterReportByInterval(reportText, startDate, endDate);
+
+                if (filteredReport.isEmpty()) {
+                    System.out.println("В указанный период данных нет");
+                } else {
+                    System.out.println(reportText);
+                }
+            } catch (ReportNotFoundException e) {
+                System.out.println("Отчет не найден: " + e.getMessage());
+            }
+        }
+    }
+
+    private List<LocalDateTime> getSortingInterval() {
+        Scanner sc = new Scanner(System.in);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+
+        return List.of(
+                readDate(sc, "начала", formatter),
+                readDate(sc, "окончания", formatter)
+        );
+    }
+
+    private LocalDateTime readDate(Scanner sc, String type, DateTimeFormatter formatter) {
+        while (true) {
+            System.out.printf("Дата %s (чч-мм-ГГГГ): ", type);
+            try {
+                return LocalDate.parse(sc.nextLine().trim(), formatter).atStartOfDay();
+            } catch (DateTimeParseException e) {
+                System.out.println("Ошибка формата!");
+            }
         }
     }
 }
