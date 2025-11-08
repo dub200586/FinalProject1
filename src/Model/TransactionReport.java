@@ -9,6 +9,26 @@ public class TransactionReport {
     Transaction transaction;
     LocalDateTime operationDateTime;
 
+    public String getTransactionName() {
+        return transactionName;
+    }
+
+    public boolean isSuccessful() {
+        return isSuccessful;
+    }
+
+    public String getStateText() {
+        return stateText;
+    }
+
+    public Transaction getTransaction() {
+        return transaction;
+    }
+
+    public LocalDateTime getOperationDateTime() {
+        return operationDateTime;
+    }
+
     public TransactionReport(String transactionName, Transaction transaction, boolean isSuccessful,
                              LocalDateTime operationDateTime, String stateText) {
         this.isSuccessful = isSuccessful;

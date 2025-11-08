@@ -1,5 +1,6 @@
 import Model.Transaction;
 import Model.TransactionReport;
+import Repository.ReportRepository;
 import Service.FileService;
 import Service.ReportService;
 import Service.TransactionService;
@@ -21,6 +22,10 @@ public class Main {
     private final static String FILE_EXTENSION = ".txt";
     private final static String FILE_TEXT_PATH = "./path" + FILE_EXTENSION;
 
+    private final static String DB_URL = "jdbc:postgresql://localhost:5432/postgres";
+    private final static String DB_USERNAME = "postgres";
+    private final static String DB_PASSWORD = "12345";
+
     private final FileService fileService;
     private final TransactionService transactionService;
     private final ReportService reportService;
@@ -28,10 +33,11 @@ public class Main {
     public Main() {
         this.fileService = new FileService(FILE_EXTENSION);
         this.transactionService = new TransactionService();
-        this.reportService = new ReportService(FILE_EXTENSION, FILE_TEXT_PATH, fileService);
+        ReportRepository reportRepository = new ReportRepository(DB_URL, DB_USERNAME, DB_PASSWORD);
+        this.reportService = new ReportService(FILE_EXTENSION, FILE_TEXT_PATH, fileService, reportRepository);
     }
 
-    public static void main() {
+    public static void main(String[] args) {
         Main app = new Main();
         app.run();
     }

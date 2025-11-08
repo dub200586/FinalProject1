@@ -4,10 +4,9 @@ import Model.Transaction;
 import Model.TransactionReport;
 import Exception.FileProcessingException;
 import Exception.ReportNotFoundException;
+import Repository.ReportRepository;
 
-import java.io.File;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -15,11 +14,14 @@ public class ReportService {
     private final String fileExtension;
     private final String pathFilePath;
     private final FileService fileService;
+    private final ReportRepository reportRepository;
 
-    public ReportService(String fileExtension, String pathFilePath, FileService fileService) {
+    public ReportService(String fileExtension, String pathFilePath,
+                         FileService fileService, ReportRepository reportRepository) {
         this.fileExtension = fileExtension;
         this.pathFilePath = pathFilePath;
         this.fileService = fileService;
+        this.reportRepository = reportRepository;
     }
 
     public List<TransactionReport> convertToTransactionReports(List<Transaction> transactions) {
@@ -38,6 +40,8 @@ public class ReportService {
             throw new FileProcessingException("Нет данных для сохранения отчета");
         }
 
+        reportRepository.saveAll(reports);
+
         String reportContent = reports.stream()
                 .map(TransactionReport::toString)
                 .collect(Collectors.joining("\n"));
@@ -49,15 +53,28 @@ public class ReportService {
         saveReportPath(fullPath);
 
         System.out.println("Отчет успешно создан: " + fullPath);
+        System.out.println("Отчет сохранен в БД");
+    }
+
+    public String getReportFromDB() throws ReportNotFoundException, FileProcessingException {
+        List<TransactionReport> reports = reportRepository.findAll();
+
+        if (reports.isEmpty()) {
+            throw new ReportNotFoundException("Отчеты не найдены в репозитории");
+        }
+
+        return reports.stream()
+                .map(TransactionReport::toString)
+                .collect(Collectors.joining("\n"));
     }
 
     public String getReport() throws ReportNotFoundException, FileProcessingException {
-        if (!fileService.isFileValid(new File(pathFilePath))) {
+        if (!fileService.isFileValid(new java.io.File(pathFilePath))) {
             throw new ReportNotFoundException("Файл отчета не найден");
         }
 
-        String reportPath = fileService.readFileContent(new File(pathFilePath));
-        File reportFile = new File(reportPath);
+        String reportPath = fileService.readFileContent(new java.io.File(pathFilePath));
+        java.io.File reportFile = new java.io.File(reportPath);
 
         if (!fileService.isFileValid(reportFile)) {
             throw new ReportNotFoundException("Файл отчета не найден");
@@ -72,7 +89,7 @@ public class ReportService {
         }
 
         String[] lines = fullReport.split("\n");
-        List<String> filteredLines = new ArrayList<>();
+        List<String> filteredLines = new java.util.ArrayList<>();
 
         for (String line : lines) {
             LocalDateTime lineDate = LocalDateTime.parse(line.substring(0, line.indexOf("|")).trim());
